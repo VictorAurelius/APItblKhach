@@ -3,58 +3,134 @@
 
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
-        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSMS - Quản lý Khách hàng</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <title>Title</title>
+    <style>
+        .card {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-group {
+            margin-top: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .card-header {
+            background-color: #007bff !important;
+        }
+
+        h1 {
+            color: #007bff;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <form>
-            <div class="form-group">
-                <label for="Id">Mã Khách</label>
-                <input type="text" class="form-control" id="Id">
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Trang CSMS quản lý tblKhach</h1>
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Thông tin khách hàng</h4>
             </div>
-            <div class="form-group">
-                <label for="Name">Tên Khách</label>
-                <input type="text" class="form-control" id="Name">
+            <div class="card-body">
+                <form id="customerForm">
+                    <div class="form-group">
+                        <label for="Id">Mã Khách</label>
+                        <input type="text" class="form-control" id="Id" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="Name">Tên Khách <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="Address">Địa chỉ <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="Address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="PhoneNumber">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="PhoneNumber" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" id="btnAdd" class="btn btn-success mr-2" onclick="AddCustomer()">
+                            <i class="fas fa-plus"></i> Thêm khách hàng
+                        </button>
+                        <button type="button" id="btnUpdate" class="btn btn-primary" onclick="UpdateCustomer()"
+                            disabled>
+                            <i class="fas fa-edit"></i> Sửa khách hàng
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="Address">Địa chỉ</label>
-                <input type="text" class="form-control" id="Address">
+        </div>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Danh sách khách hàng</h4>
             </div>
-            <div class="form-group">
-                <label for="PhoneNumber">Số điện thoại</label>
-                <input type="text" class="form-control" id="PhoneNumber">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="KhachHang" class="table table-striped table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Mã Khách</th>
+                                <th>Tên Khách</th>
+                                <th>Địa chỉ</th>
+                                <th>Số điện thoại</th>
+                                <th>Xóa</th>
+                                <th>Sửa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allKH"></tbody>
+                    </table>
+                </div>
             </div>
-            <button type="button" class="btn btn-primary" onclick="AddCustomer()">Thêm khách hàng</button>
-            <button type="button" class="btn btn-primary" onclick="UpdateCustomer()">Sửa khách hàng</button>
-            <!--<button type="button" class="btn btn-primary" onclick="DeleteCustomer()">Xóa khách hàng</button>-->
-        </form>
-        <table id="KhachHang" class="table table-striped table-bordered">
-            <thead class="thead-light">
-                <tr>
-                    <th>Mã Khách</th>
-                    <th>Tên Khách</th>
-                    <th>Địa chỉ</th>
-                    <th>Số điện thoại</th>
-                    <th>Xóa</th>
-                    <th>Sửa</th>
-                </tr>
-            </thead>
-            <tbody id="allKH"></tbody>
-        </table>
+        </div>
     </div>
 </body>
 
 </html>
 <script type="text/javascript">
     let url = '/tblKhach';
+    let isEditMode = false;
+
     $(document).ready(function () {
         GetAllCustomers();
+        updateButtonState();
     });
+
+    function validateForm() {
+        let tenKhach = $("#Name").val().trim();
+        let diaChi = $("#Address").val().trim();
+        let dienThoai = $("#PhoneNumber").val().trim();
+
+        if (!tenKhach || !diaChi || !dienThoai) {
+            alert("Vui lòng nhập đầy đủ thông tin Tên khách, Địa chỉ và Số điện thoại");
+            return false;
+        }
+        return true;
+    }
+
+    function updateButtonState() {
+        if (isEditMode) {
+            $("#btnAdd").prop('disabled', true);
+            $("#btnUpdate").prop('disabled', false);
+        } else {
+            $("#btnAdd").prop('disabled', false);
+            $("#btnUpdate").prop('disabled', true);
+        }
+    }
+
     function GetAllCustomers() {
         $.ajax({
             url: url,
@@ -68,8 +144,8 @@
                     html += '<td>' + item.TenKhach + '</td>';
                     html += '<td>' + item.DiaChi + '</td>';
                     html += '<td>' + item.DienThoai + '</td>';
-                    html += '<td><button class="btn btn-danger" onclick="DeleteCustomer(' + item.MaKhach + ')">Xóa</button></td>';
-                    html += '<td><button class="btn btn-primary" onclick="GetCustomer(' + item.MaKhach + ')">Sửa</button></td>';
+                    html += '<td><button class="btn btn-danger btn-sm" onclick="DeleteCustomer(' + item.MaKhach + ')"><i class="fas fa-trash"></i> Xóa</button></td>';
+                    html += '<td><button class="btn btn-primary btn-sm" onclick="GetCustomer(' + item.MaKhach + ')"><i class="fas fa-edit"></i> Sửa</button></td>';
                     html += '</tr>';
                 });
                 $('#allKH').html(html);
@@ -79,11 +155,14 @@
             }
         });
     }
+
     function AddCustomer() {
+        if (!validateForm()) return;
+
         let data = {
-            TenKhach: $("#Name").val(),
-            DiaChi: $("#Address").val(),
-            DienThoai: $("#PhoneNumber").val()
+            TenKhach: $("#Name").val().trim(),
+            DiaChi: $("#Address").val().trim(),
+            DienThoai: $("#PhoneNumber").val().trim()
         };
 
         $.ajax({
@@ -102,6 +181,7 @@
             }
         });
     }
+
     function GetCustomer(id) {
         $.ajax({
             url: url + "/" + id,
@@ -112,13 +192,18 @@
                 $("#Name").val(res.TenKhach);
                 $("#Address").val(res.DiaChi);
                 $("#PhoneNumber").val(res.DienThoai);
+                isEditMode = true;
+                updateButtonState();
             },
             error: function (res) {
                 console.error("Error:", res);
             }
         });
     }
+
     function UpdateCustomer() {
+        if (!validateForm()) return;
+
         let id = $("#Id").val();
         if (!id) {
             alert("Vui lòng chọn khách hàng để sửa");
@@ -126,9 +211,9 @@
         }
 
         let data = {
-            TenKhach: $("#Name").val(),
-            DiaChi: $("#Address").val(),
-            DienThoai: $("#PhoneNumber").val()
+            TenKhach: $("#Name").val().trim(),
+            DiaChi: $("#Address").val().trim(),
+            DienThoai: $("#PhoneNumber").val().trim()
         };
 
         $.ajax({
@@ -147,6 +232,7 @@
             }
         });
     }
+
     function DeleteCustomer(id) {
         if (confirm("Bạn có chắc chắn muốn xóa khách hàng này?")) {
             $.ajax({
@@ -165,9 +251,9 @@
     }
 
     function clearForm() {
+        $("#customerForm").trigger('reset');
         $("#Id").val("");
-        $("#Name").val("");
-        $("#Address").val("");
-        $("#PhoneNumber").val("");
+        isEditMode = false;
+        updateButtonState();
     }
 </script>
