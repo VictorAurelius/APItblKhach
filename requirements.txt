@@ -3,3 +3,4 @@ Werkzeug==2.0.3
 flask-mysqldb==0.2.0
 mysql-connector-python==8.0.26
 python-dotenv==0.19.0
+flask-cors==3.0.10
