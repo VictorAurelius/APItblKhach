@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import mysql.connector
 
@@ -61,6 +61,11 @@ def add_customer():
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
+
+# API: Serve frontend
+@app.route('/')
+def serve_frontend():
+    return send_file('Index_full.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
